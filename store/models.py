@@ -6,7 +6,7 @@ from uuid import uuid4
 class ProductCatgeory(models.Model):
     """
     This class represents a product category in the store.
-    
+
     Attributes:
         id (int): The primary key for the product category.
         title (str): The title of the product category.
@@ -17,6 +17,7 @@ class ProductCatgeory(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+
 class Product(models.Model):
     """
     This class represents a product in the store.
@@ -24,7 +25,7 @@ class Product(models.Model):
     Attributes:
         id (int): The primary key for the product.
         created_at (datetime): The date and time the product was created.
-        updated_at (datetime): The date and time the product was last updated.
+        updated_at (datetime): Thsette date and time the product was last updated.
         title (str): The title of the product.
         description (str): The description of the product.
         price (decimal): The price of the product.
@@ -62,10 +63,17 @@ class User(models.Model):
     phone = models.CharField(max_length=255)
     password = models.CharField(max_length=20)
 
+    class Meta:
+        db_table = 'users'
+        indexes = [
+            models.Index(fields=['first_name', 'last_name']),
+        ]
+
+
 class Order(models.Model):
     """
     This class represents an order in the store.
-    
+
     Attributes:
         id (int): The primary key for the order.
         placed_at (datetime): The date and time the order was created.
@@ -89,7 +97,9 @@ class Order(models.Model):
         (PAYMENT_STATUS_COMPLETE, 'Complete'),
         (PAYMENT_STATUS_FAILED, 'Failed'),
     ]
-    payment_status = models.CharField(max_length=1, choices=PAYMENT_STATUS_CHOICES, default=PAYMENT_STATUS_PENDING)
+    payment_status = models.CharField(
+        max_length=1, choices=PAYMENT_STATUS_CHOICES, default=PAYMENT_STATUS_PENDING)
+
 
 class OrderItem(models.Model):
     """
@@ -106,6 +116,7 @@ class OrderItem(models.Model):
     product = models.ForeignKey(Product, on_delete=models.PROTECT)
     quantity = models.IntegerField()
     unit_price = models.DecimalField(max_digits=6, decimal_places=2)
+
 
 class Cart(models.Model):
     """
