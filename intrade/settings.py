@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'rest_framework',
     'payment',
     'store',
     'debug_toolbar',
@@ -83,8 +84,12 @@ WSGI_APPLICATION = 'intrade.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'postgres',
+        'HOST': 'intradedatabase.cm7n0i9g4wwz.us-east-1.rds.amazonaws.com',
+        'PORT': '5432',
+        'USER': 'intradedb',
+        'PASSWORD': 'Olaseni1996',
     }
 }
 
