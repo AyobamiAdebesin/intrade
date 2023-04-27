@@ -70,7 +70,7 @@ class User(models.Model):
     class Meta:
         db_table = 'users'
         indexes = [
-            models.Index(fields=['first_name', 'last_name']),
+            models.Index(fields=['id', 'first_name', 'last_name', 'email']),
         ]
 
 
