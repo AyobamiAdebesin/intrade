@@ -17,6 +17,10 @@ class ProductCatgeory(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    class Meta:
+        db_table = 'product_categories'
+        verbose_name_plural = 'Product categories'
+
 
 class Product(models.Model):
     """
@@ -25,7 +29,7 @@ class Product(models.Model):
     Attributes:
         id (int): The primary key for the product.
         created_at (datetime): The date and time the product was created.
-        updated_at (datetime): Thsette date and time the product was last updated.
+        updated_at (datetime): The date and time the product was last updated.
         title (str): The title of the product.
         description (str): The description of the product.
         price (decimal): The price of the product.
@@ -100,6 +104,9 @@ class Order(models.Model):
     payment_status = models.CharField(
         max_length=1, choices=PAYMENT_STATUS_CHOICES, default=PAYMENT_STATUS_PENDING)
 
+    class Meta:
+        db_table = 'orders'
+
 
 class OrderItem(models.Model):
     """
@@ -117,6 +124,9 @@ class OrderItem(models.Model):
     quantity = models.IntegerField()
     unit_price = models.DecimalField(max_digits=6, decimal_places=2)
 
+    class Meta:
+        db_table = 'order_items'
+
 
 class Cart(models.Model):
     """
@@ -130,6 +140,9 @@ class Cart(models.Model):
     """
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'carts'
 
 
 class CartItem(models.Model):
@@ -146,3 +159,6 @@ class CartItem(models.Model):
     cart = models.ForeignKey(Cart, on_delete=models.CASCADE)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     quantity = models.IntegerField()
+
+    class Meta:
+        db_table = 'cart_items'
