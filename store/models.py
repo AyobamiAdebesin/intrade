@@ -1,4 +1,4 @@
-""" This file contains the models for the store app. """
+""" This module contains the models for the store app. """
 from django.db import models
 from uuid import uuid4
 
@@ -17,9 +17,11 @@ class ProductCatgeory(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    def __str__(self) -> str:
+        return self.title
     class Meta:
         db_table = 'product_categories'
-        verbose_name_plural = 'Product categories'
+        ordering = ['title']
 
 
 class Product(models.Model):
@@ -42,7 +44,7 @@ class Product(models.Model):
     description = models.TextField()
     price = models.DecimalField(max_digits=6, decimal_places=2)
     inventory = models.IntegerField()
-    category_id = models.ForeignKey(ProductCatgeory, on_delete=models.PROTECT)
+    category = models.ForeignKey(ProductCatgeory, on_delete=models.PROTECT)
 
     class Meta:
         db_table = 'products'
