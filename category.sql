@@ -1,0 +1,10 @@
+insert into category (id, title, created_at, updated_at) values (1, 'Bread - Pullman, Sliced', '7/31/2022', '2/5/2023');
+insert into category (id, title, created_at, updated_at) values (2, 'Beef - Striploin', '2/4/2023', '4/19/2023');
+insert into category (id, title, created_at, updated_at) values (3, 'Pecan Raisin - Tarts', '11/11/2022', '10/18/2022');
+insert into category (id, title, created_at, updated_at) values (4, 'Soup - Campbells, Creamy', '4/29/2022', '6/22/2022');
+insert into category (id, title, created_at, updated_at) values (5, 'Coconut - Whole', '8/19/2022', '2/26/2023');
+insert into category (id, title, created_at, updated_at) values (6, 'Jam - Blackberry, 20 Ml Jar', '8/26/2022', '12/31/2022');
+insert into category (id, title, created_at, updated_at) values (7, 'Sauce - Plum', '10/3/2022', '8/26/2022');
+insert into category (id, title, created_at, updated_at) values (8, 'Sage Ground Wiberg', '3/11/2023', '11/20/2022');
+insert into category (id, title, created_at, updated_at) values (9, 'Beef - Salted', '10/1/2022', '7/23/2022');
+insert into category (id, title, created_at, updated_at) values (10, 'Island Oasis - Lemonade', '5/30/2022', '8/4/2022');
