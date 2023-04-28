@@ -85,10 +85,10 @@ WSGI_APPLICATION = 'intrade.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'postgres',
-        'HOST': 'intradedatabase.cm7n0i9g4wwz.us-east-1.rds.amazonaws.com',
+        'NAME': 'intrade_database',
+        'HOST': 'intrade-database.cm7n0i9g4wwz.us-east-1.rds.amazonaws.com',
         'PORT': '5432',
-        'USER': 'intradedb',
+        'USER': 'intrade_dev',
         'PASSWORD': 'Olaseni1996',
     }
 }
