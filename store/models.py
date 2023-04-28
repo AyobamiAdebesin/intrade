@@ -42,7 +42,10 @@ class Product(models.Model):
     description = models.TextField()
     price = models.DecimalField(max_digits=6, decimal_places=2)
     inventory = models.IntegerField()
-    collection = models.ForeignKey(ProductCatgeory, on_delete=models.PROTECT)
+    category_id = models.ForeignKey(ProductCatgeory, on_delete=models.PROTECT)
+
+    class Meta:
+        db_table = 'products'
 
 
 class User(models.Model):
