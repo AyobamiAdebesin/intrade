@@ -44,7 +44,7 @@ class Product(models.Model):
     description = models.TextField()
     price = models.DecimalField(max_digits=6, decimal_places=2)
     inventory = models.IntegerField()
-    category = models.ForeignKey(ProductCatgeory, on_delete=models.PROTECT)
+    category = models.ForeignKey(ProductCatgeory, on_delete=models.PROTECT, related_name='products')
 
     class Meta:
         db_table = 'products'
@@ -125,7 +125,7 @@ class OrderItem(models.Model):
         unit_price (decimal): The unit price of the product ordered.
     """
     order = models.ForeignKey(Order, on_delete=models.PROTECT)
-    product = models.ForeignKey(Product, on_delete=models.PROTECT)
+    product = models.ForeignKey(Product, on_delete=models.PROTECT, related_name='orderitems')
     quantity = models.IntegerField()
     unit_price = models.DecimalField(max_digits=6, decimal_places=2)
 
