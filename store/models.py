@@ -1,6 +1,7 @@
 """ This module contains the models for the store app. """
+import uuid
 from django.db import models
-from uuid import uuid4
+
 
 
 class ProductCatgeory(models.Model):
@@ -143,6 +144,7 @@ class Cart(models.Model):
         updated_at (datetime): The date and time the cart was last updated.
         user (User): The user who owns the cart.
     """
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -161,9 +163,13 @@ class CartItem(models.Model):
         quantity (int): The quantity of the product ordered.
         unit_price (decimal): The unit price of the product ordered.
     """
-    cart = models.ForeignKey(Cart, on_delete=models.CASCADE)
+    cart = models.ForeignKey(Cart, on_delete=models.CASCADE, related_name='items')
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     quantity = models.IntegerField()
+    
+
+    class Meta:
+        unique_together = [['cart', 'product']]
 
     class Meta:
         db_table = 'cart_items'
