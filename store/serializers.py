@@ -8,7 +8,8 @@ of the each model.
 
 from rest_framework import serializers
 from .models import ProductCatgeory
-from .models import User
+from .models import User, Product
+
 
 class UserSerializer(serializers.Serializer):
     """
@@ -37,9 +38,13 @@ class ProductCategorySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ProductCatgeory
-        fields = ['id', 'title']
+        fields = ['id', 'title', 'product_count']
+        read_only_fields = ['product_count', 'id']
+    
+    product_count = serializers.IntegerField(read_only=True)
 
-class ProductSerializer(serializers.Serializer):
+
+class ProductSerializer(serializers.ModelSerializer):
     """
     This class serializes the Product model.
 
@@ -48,11 +53,21 @@ class ProductSerializer(serializers.Serializer):
         title (str): The title of the product.
         unit_price (decimal): The unit price of the product.
     """
-    id = serializers.IntegerField(read_only=True)
-    title = serializers.CharField(max_length=255)
-    price = serializers.DecimalField(max_digits=6, decimal_places=2)
-    category = ProductCategorySerializer()
-    #category = serializers.StringRelatedField()
+
+    # def create(self, validated_data):
+    #     product = Product(**validated_data)
+    #     product.other = 1
+    #     product.save()
+    #     return product
+    
+    # def update(self, instance, validated_data):
+    #     instance.unit_price = validated_data.get('unit_prce')
+    class Meta:
+        model = Product
+        fields = ['title', 'description',
+                  'price', 'inventory', 'category']
+    # category = ProductCategorySerializer()
+    # category = serializers.StringRelatedField()
     # category = serializers.PrimaryKeyRelatedField(
     #     queryset = ProductCatgeory.objects.all()
     # )
