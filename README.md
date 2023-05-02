@@ -1,14 +1,17 @@
 # intrade
 
 A scalable backend API for an ecommerce company with recurring payment features
-
 ## INSTRUCTIONS ON HOW TO RUN THIS PROJECT
 
 * To run this project, you will need to clone this repository into your local machine. On the command line, start by running 
 ```
 git clone https://github.com/AyobamiAdebesin/intrade
 ```
-* cd intrade/
+
+* Next you will need to navigate into the intrade folder. Run:
+```
+cd intrade/
+```
 
 * Next, you will need to start a virtual environment to run this project. Make sure you have python's ```pipenv``` installed on your machine. Run
 ```
@@ -38,5 +41,27 @@ and follow the prompts to create a superuser.
 ```
 python manage.py runserver
 ```
+
+## PROJECT DEPENDENCIES
+* Python 3.8.5
+* Django 3.1.2
+* Django Rest Framework 3.12.1
+* PostgreSQL 12.5
+* Amazon RDS PostgreSQL 12.5
+* Pipenv 2020.11.15
+* Requests 2.25.0
+* Djoser 2.0.3
+* Django Rest Framework Simple JWT 4.6.0
+* Django Filter 2.4.0
+* Psycopg2 2.8.6
+
+
+# API ENDPOINTS
+GET: /http://127.0.0.1:8000/intrade - This is the root endpoint. It returns a list of all the endpoints in the API.
+
+GET: "http://127.0.0.1:8000/intrade/products/" - This endpoint returns a list of all the products in the database.
+
+
+
 
 

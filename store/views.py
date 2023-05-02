@@ -1,3 +1,10 @@
+"""
+This module defines the views for the store app.
+
+Each view is mapped to a URL path and the path to the view
+is defined in the store/urls.py module.
+"""
+
 from store.permissions import FullDjangoModelPermissions, IsAdminOrReadOnly, ViewCustomerHistoryPermission
 from store.pagination import DefaultPagination
 from django.db.models.aggregates import Count
@@ -30,9 +37,15 @@ class ProductViewSet(ModelViewSet):
     ordering_fields = ['unit_price', 'last_update']
 
     def get_serializer_context(self):
+        """ Additional context provided to the serializer. """
         return {'request': self.request}
 
     def destroy(self, request, *args, **kwargs):
+        """
+        Deletes a product.
+        
+        If the product is associated with an order item, the product cannot be deleted.
+        """
         if OrderItem.objects.filter(product_id=kwargs['pk']).count() > 0:
             return Response({'error': 'Product cannot be deleted because it is associated with an order item.'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
@@ -50,6 +63,11 @@ class CollectionViewSet(ModelViewSet):
     permission_classes = [IsAdminOrReadOnly]
 
     def destroy(self, request, *args, **kwargs):
+        """
+        Deletes a collection.
+
+        If the collection is associated with one or more products, the collection cannot be deleted.
+        """
         if Product.objects.filter(collection_id=kwargs['pk']):
             return Response({'error': 'Collection cannot be deleted because it includes one or more products.'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
@@ -64,9 +82,11 @@ class ReviewViewSet(ModelViewSet):
     serializer_class = ReviewSerializer
 
     def get_queryset(self):
+        """ Returns the reviews for a product. """
         return Review.objects.filter(product_id=self.kwargs['product_pk'])
 
     def get_serializer_context(self):
+        """ Additional context provided to the serializer. """
         return {'product_id': self.kwargs['product_pk']}
 
 
@@ -89,6 +109,9 @@ class CartItemViewSet(ModelViewSet):
     http_method_names = ['get', 'post', 'patch', 'delete']
 
     def get_serializer_class(self):
+        """
+        Returns the serializer class based on the request method.
+        """
         if self.request.method == 'POST':
             return AddCartItemSerializer
         elif self.request.method == 'PATCH':
@@ -96,9 +119,11 @@ class CartItemViewSet(ModelViewSet):
         return CartItemSerializer
 
     def get_serializer_context(self):
+        """ Additional context provided to the serializer. """
         return {'cart_id': self.kwargs['cart_pk']}
 
     def get_queryset(self):
+        """ Returns the cart items for a cart. """
         return CartItem.objects \
             .filter(cart_id=self.kwargs['cart_pk']) \
             .select_related('product')
@@ -115,10 +140,16 @@ class CustomerViewSet(ModelViewSet):
 
     @action(detail=True, permission_classes=[ViewCustomerHistoryPermission])
     def history(self, request, pk):
+        """
+        Returns the order history for a customer.
+        """
         return Response('ok')
 
     @action(detail=False, methods=['GET', 'PUT'], permission_classes=[IsAuthenticated])
     def me(self, request):
+        """
+        Returns the profile of the logged-in customer.
+        """
         customer = Customer.objects.get(
             user_id=request.user.id)
         if request.method == 'GET':
@@ -139,11 +170,17 @@ class OrderViewSet(ModelViewSet):
     http_method_names = ['get', 'post', 'patch', 'delete', 'head', 'options']
 
     def get_permissions(self):
+        """
+        Returns the list of permissions that this view requires.
+        """
         if self.request.method in ['PATCH', 'DELETE']:
             return [IsAdminUser()]
         return [IsAuthenticated()]
 
     def create(self, request, *args, **kwargs):
+        """
+        Creates an order.
+        """
         serializer = CreateOrderSerializer(
             data=request.data,
             context={'user_id': self.request.user.id})
@@ -153,6 +190,7 @@ class OrderViewSet(ModelViewSet):
         return Response(serializer.data)
 
     def get_serializer_class(self):
+        """ Returns the serializer class based on the request method. """
         if self.request.method == 'POST':
             return CreateOrderSerializer
         elif self.request.method == 'PATCH':
@@ -160,6 +198,7 @@ class OrderViewSet(ModelViewSet):
         return OrderSerializer
 
     def get_queryset(self):
+        """ Returns the orders for a customer. """
         user = self.request.user
 
         if user.is_staff:
