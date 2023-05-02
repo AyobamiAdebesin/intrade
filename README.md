@@ -42,7 +42,7 @@ and follow the prompts to create a superuser.
 python manage.py runserver
 ```
 
-## PROJECT DEPENDENCIES
+### PROJECT DEPENDENCIES
 * Python 3.8
 * Django 4.2
 * Django debug toolbar 4.0.0
@@ -56,7 +56,7 @@ python manage.py runserver
 * Psycopg2 2.9.6
 
 
-# API ENDPOINTS
+### API ENDPOINTS
 GET: /http://127.0.0.1:8000/intrade - This is the root endpoint. It returns a list of all the endpoints in the API.
 
 GET: "http://127.0.0.1:8000/intrade/products/" - This endpoint returns a list of all the products in the database.
