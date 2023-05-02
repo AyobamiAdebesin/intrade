@@ -8,7 +8,7 @@ of the each model.
 
 from rest_framework import serializers
 from .models import ProductCatgeory
-from .models import User, Product
+from .models import User, Product, Cart, CartItem
 
 
 class UserSerializer(serializers.Serializer):
@@ -40,7 +40,7 @@ class ProductCategorySerializer(serializers.ModelSerializer):
         model = ProductCatgeory
         fields = ['id', 'title', 'product_count']
         read_only_fields = ['product_count', 'id']
-    
+
     product_count = serializers.IntegerField(read_only=True)
 
 
@@ -59,7 +59,7 @@ class ProductSerializer(serializers.ModelSerializer):
     #     product.other = 1
     #     product.save()
     #     return product
-    
+
     # def update(self, instance, validated_data):
     #     instance.unit_price = validated_data.get('unit_prce')
     class Meta:
@@ -71,3 +71,54 @@ class ProductSerializer(serializers.ModelSerializer):
     # category = serializers.PrimaryKeyRelatedField(
     #     queryset = ProductCatgeory.objects.all()
     # )
+
+
+class SimpleProductSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Product
+        fields = ['id', 'title', 'price']
+
+
+class CartItemSerializer(serializers.ModelSerializer):
+    """
+    This class serializes the CartItem model.
+
+    Attributes:
+        id (int): The primary key for the cart item.
+        created_at (datetime): The date and time the cart item was created.
+        updated_at (datetime): The date and time the cart item was last updated.
+        cart (Cart): The cart the cart item belongs to.
+        product (Product): The product the cart item belongs to.
+        quantity (int): The quantity of the product in the cart item.
+    """
+    product = SimpleProductSerializer()
+    total_price = serializers.SerializerMethodField()
+
+    def get_total_price(self, cart_item: CartItem):
+        return cart_item.quantity * cart_item.product.price
+
+    class Meta:
+        model = CartItem
+        fields = ['id', 'product', 'quantity', 'total_price']
+
+
+class CartSerializer(serializers.ModelSerializer):
+    """
+    This class serializes the Cart model.
+
+    Attributes:
+        id (int): The primary key for the cart.
+        created_at (datetime): The date and time the cart was created.
+        updated_at (datetime): The date and time the cart was last updated.
+        user (User): The user that owns the cart.
+        products (Product): The products in the cart.
+    """
+    items = CartItemSerializer(many=True, read_only=True)
+    total_price = serializers.SerializerMethodField()
+    class Meta:
+        model = Cart
+        fields = ['id', 'items', 'total_price']
+        read_only_fields = ['id']
+
+    def get_total_price(self, cart):
+        return sum([item.quantity * item.product.price for item in cart.items.all()])
