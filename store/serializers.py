@@ -6,42 +6,27 @@ model to JSON and they serve as the external API representation
 of the each model.
 """
 
+from decimal import Decimal
+from django.db import transaction
 from rest_framework import serializers
-from .models import ProductCatgeory
-from .models import User, Product, Cart, CartItem
+from .signals import order_created
+from .models import Cart, CartItem, Customer, Order, OrderItem, Product, Collection, Review
 
 
-class UserSerializer(serializers.Serializer):
+class CollectionSerializer(serializers.ModelSerializer):
     """
-    This class serializes the User model. 
+    This class serializes the Collection model.
 
     Attributes:
-        id (int): The primary key for the user.
-        first_name (str): The first name of the user.
-        last_name (str): The last name of the user.
-        email (str): The email of the user.
-        phone (str): The phone number of the user.
+        id (int): The primary key for the collection.
+        title (str): The title of the collection.
+        products_count (int): The number of products in the collection.
     """
     class Meta:
-        model = User
-        fields = ['id', 'first_name', 'last_name', 'email', 'phone']
+        model = Collection
+        fields = ['id', 'title', 'products_count']
 
-
-class ProductCategorySerializer(serializers.ModelSerializer):
-    """
-    This class serializes the ProductCategory model.
-
-    Attributes:
-        id (int): The primary key for the product category.
-        title (str): The title of the product category.
-    """
-
-    class Meta:
-        model = ProductCatgeory
-        fields = ['id', 'title', 'product_count']
-        read_only_fields = ['product_count', 'id']
-
-    product_count = serializers.IntegerField(read_only=True)
+    products_count = serializers.IntegerField(read_only=True)
 
 
 class ProductSerializer(serializers.ModelSerializer):
@@ -51,32 +36,57 @@ class ProductSerializer(serializers.ModelSerializer):
     Attributes:
         id (int): The primary key for the product.
         title (str): The title of the product.
+        description (str): The description of the product.
+        slug (str): The slug of the product.
+        inventory (int): The number of the product in inventory.
         unit_price (decimal): The unit price of the product.
+        price_with_tax (decimal): The unit price of the product with tax.
+        collection (Collection): The collection the product belongs to.
     """
-
-    # def create(self, validated_data):
-    #     product = Product(**validated_data)
-    #     product.other = 1
-    #     product.save()
-    #     return product
-
-    # def update(self, instance, validated_data):
-    #     instance.unit_price = validated_data.get('unit_prce')
     class Meta:
         model = Product
-        fields = ['title', 'description',
-                  'price', 'inventory', 'category']
-    # category = ProductCategorySerializer()
-    # category = serializers.StringRelatedField()
-    # category = serializers.PrimaryKeyRelatedField(
-    #     queryset = ProductCatgeory.objects.all()
-    # )
+        fields = ['id', 'title', 'description', 'slug', 'inventory',
+                  'unit_price', 'price_with_tax', 'collection']
+
+    price_with_tax = serializers.SerializerMethodField(
+        method_name='calculate_tax')
+
+    def calculate_tax(self, product: Product):
+        return product.unit_price * Decimal(1.1)
+
+
+class ReviewSerializer(serializers.ModelSerializer):
+    """
+    This class serializes the Review model.
+
+    Attributes:
+        id (int): The primary key for the review.
+        date (datetime): The date and time the review was created.
+        name (str): The name of the reviewer.
+        description (str): The description of the review.
+    """
+    class Meta:
+        model = Review
+        fields = ['id', 'date', 'name', 'description']
+
+    def create(self, validated_data):
+        product_id = self.context['product_id']
+        return Review.objects.create(product_id=product_id, **validated_data)
 
 
 class SimpleProductSerializer(serializers.ModelSerializer):
+    """
+    This class serializes the Product model.
+    But only returns the id, title, and unit_price fields.
+
+    Attributes:
+        id (int): The primary key for the product.
+        title (str): The title of the product.
+        unit_price (decimal): The unit price of the product.
+    """
     class Meta:
         model = Product
-        fields = ['id', 'title', 'price']
+        fields = ['id', 'title', 'unit_price']
 
 
 class CartItemSerializer(serializers.ModelSerializer):
@@ -85,17 +95,15 @@ class CartItemSerializer(serializers.ModelSerializer):
 
     Attributes:
         id (int): The primary key for the cart item.
-        created_at (datetime): The date and time the cart item was created.
-        updated_at (datetime): The date and time the cart item was last updated.
-        cart (Cart): The cart the cart item belongs to.
-        product (Product): The product the cart item belongs to.
+        product (SimpleProductSerializer): The product in the cart item.
         quantity (int): The quantity of the product in the cart item.
+        total_price (decimal): The total price of the cart item.
     """
     product = SimpleProductSerializer()
     total_price = serializers.SerializerMethodField()
 
     def get_total_price(self, cart_item: CartItem):
-        return cart_item.quantity * cart_item.product.price
+        return cart_item.quantity * cart_item.product.unit_price
 
     class Meta:
         model = CartItem
@@ -107,18 +115,182 @@ class CartSerializer(serializers.ModelSerializer):
     This class serializes the Cart model.
 
     Attributes:
-        id (int): The primary key for the cart.
-        created_at (datetime): The date and time the cart was created.
-        updated_at (datetime): The date and time the cart was last updated.
-        user (User): The user that owns the cart.
-        products (Product): The products in the cart.
+        id (uuid): The primary key for the cart.
+        items (CartItemSerializer): The cart items in the cart.
+        total_price (decimal): The total price of the cart.
     """
+    id = serializers.UUIDField(read_only=True)
     items = CartItemSerializer(many=True, read_only=True)
     total_price = serializers.SerializerMethodField()
+
+    def get_total_price(self, cart):
+        return sum([item.quantity * item.product.unit_price for item in cart.items.all()])
+
     class Meta:
         model = Cart
         fields = ['id', 'items', 'total_price']
-        read_only_fields = ['id']
 
-    def get_total_price(self, cart):
-        return sum([item.quantity * item.product.price for item in cart.items.all()])
+
+class AddCartItemSerializer(serializers.ModelSerializer):
+    """
+    This class serializes the CartItem model for adding a new cart item.
+
+    Attributes:
+        product_id (int): The primary key for the product.
+        quantity (int): The quantity of the product in the cart item.
+    """
+    product_id = serializers.IntegerField()
+
+    def validate_product_id(self, value):
+        if not Product.objects.filter(pk=value).exists():
+            raise serializers.ValidationError(
+                'No product with the given ID was found.')
+        return value
+
+    def save(self, **kwargs):
+        """
+        This method creates a new cart item or updates an existing one.
+        """
+        cart_id = self.context['cart_id']
+        product_id = self.validated_data['product_id']
+        quantity = self.validated_data['quantity']
+
+        try:
+            cart_item = CartItem.objects.get(
+                cart_id=cart_id, product_id=product_id)
+            cart_item.quantity += quantity
+            cart_item.save()
+            self.instance = cart_item
+        except CartItem.DoesNotExist:
+            self.instance = CartItem.objects.create(
+                cart_id=cart_id, **self.validated_data)
+
+        return self.instance
+
+    class Meta:
+        model = CartItem
+        fields = ['id', 'product_id', 'quantity']
+
+
+class UpdateCartItemSerializer(serializers.ModelSerializer):
+    """
+    This class serializes the CartItem model for updating an existing cart item.
+
+    Attributes:
+        quantity (int): The quantity of the product in the cart item.
+    """
+
+    class Meta:
+        model = CartItem
+        fields = ['quantity']
+
+
+class CustomerSerializer(serializers.ModelSerializer):
+    """
+    This class serializes the Customer model.
+
+    Attributes:
+        id (int): The primary key for the customer.
+        user_id (int): The primary key for the user.
+        phone (str): The phone number of the customer.
+        birth_date (date): The birth date of the customer.
+        membership (str): The membership of the customer.
+    """
+    user_id = serializers.IntegerField(read_only=True)
+
+    class Meta:
+        model = Customer
+        fields = ['id', 'user_id', 'phone', 'birth_date', 'membership']
+
+
+class OrderItemSerializer(serializers.ModelSerializer):
+    """
+    This class serializes the OrderItem model.
+
+    Attributes:
+        id (int): The primary key for the order item.
+        product (SimpleProductSerializer): The product in the order item.
+        unit_price (decimal): The unit price of the product in the order item.
+        quantity (int): The quantity of the product in the order item.
+    """
+    product = SimpleProductSerializer()
+
+    class Meta:
+        model = OrderItem
+        fields = ['id', 'product', 'unit_price', 'quantity']
+
+
+class OrderSerializer(serializers.ModelSerializer):
+    """
+    This class serializes the Order model.
+
+    Attributes:
+        id (int): The primary key for the order.
+        customer (CustomerSerializer): The customer who placed the order.
+        placed_at (datetime): The date and time the order was placed.
+        payment_status (str): The payment status of the order.
+        items (OrderItemSerializer): The order items in the order.
+    """
+    items = OrderItemSerializer(many=True)
+
+    class Meta:
+        model = Order
+        fields = ['id', 'customer', 'placed_at', 'payment_status', 'items']
+
+
+class UpdateOrderSerializer(serializers.ModelSerializer):
+    """
+    This class serializes the Order model for updating an existing order.
+
+    Attributes:
+        payment_status (str): The payment status of the order.
+    """
+    class Meta:
+        model = Order
+        fields = ['payment_status']
+
+
+class CreateOrderSerializer(serializers.Serializer):
+    """
+    This class serializes the Order model for creating a new order. It also
+    validates the cart ID and checks if the cart is empty.
+
+    Attributes:
+        cart_id (uuid): The primary key for the cart.
+    """
+    cart_id = serializers.UUIDField()
+
+    def validate_cart_id(self, cart_id):
+        if not Cart.objects.filter(pk=cart_id).exists():
+            raise serializers.ValidationError(
+                'No cart with the given ID was found.')
+        if CartItem.objects.filter(cart_id=cart_id).count() == 0:
+            raise serializers.ValidationError('The cart is empty.')
+        return cart_id
+
+    def save(self, **kwargs):
+        with transaction.atomic():
+            cart_id = self.validated_data['cart_id']
+
+            customer = Customer.objects.get(
+                user_id=self.context['user_id'])
+            order = Order.objects.create(customer=customer)
+
+            cart_items = CartItem.objects \
+                .select_related('product') \
+                .filter(cart_id=cart_id)
+            order_items = [
+                OrderItem(
+                    order=order,
+                    product=item.product,
+                    unit_price=item.product.unit_price,
+                    quantity=item.quantity
+                ) for item in cart_items
+            ]
+            OrderItem.objects.bulk_create(order_items)
+
+            Cart.objects.filter(pk=cart_id).delete()
+
+            order_created.send_robust(self.__class__, order=order)
+
+            return order
