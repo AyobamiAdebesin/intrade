@@ -43,17 +43,17 @@ python manage.py runserver
 ```
 
 ## PROJECT DEPENDENCIES
-* Python 3.8.5
-* Django 3.1.2
-* Django Rest Framework 3.12.1
-* PostgreSQL 12.5
-* Amazon RDS PostgreSQL 12.5
+* Python 3.8
+* Django 4.2
+* Django debug toolbar 4.0.0
+* Django Rest Framework 3.14.0
+* Amazon RDS PostgreSQL
 * Pipenv 2020.11.15
-* Requests 2.25.0
+* Requests 2.29.0
 * Djoser 2.0.3
-* Django Rest Framework Simple JWT 4.6.0
-* Django Filter 2.4.0
-* Psycopg2 2.8.6
+* Django Rest Framework Simple JWT 5.2.2
+* Django Filter 23.2
+* Psycopg2 2.9.6
 
 
 # API ENDPOINTS
