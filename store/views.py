@@ -5,9 +5,9 @@ from rest_framework.decorators import api_view
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from .models import User
+from .models import User, Cart
 from .models import Product, ProductCatgeory
-from .serializers import UserSerializer, ProductSerializer
+from .serializers import UserSerializer, ProductSerializer, CartSerializer
 from .serializers import ProductCategorySerializer
 
 # Create your views here.
@@ -78,24 +78,28 @@ class ProductDetail(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-@api_view(['GET'])
-def user_list(request):
-    """
-    This function handles the request to list all users.
-    """
-    users = User.objects.all()[:5]
-    serializer = UserSerializer(users, many=True)
-    return Response(serializer.data)
+class CartCreation(APIView):
+    """ This class handles the request to create carts. """
+
+    def post(self, request):
+        serializer = CartSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
-@api_view()
-def user_detail(request, pk):
-    """
-    This function handles the request to retrieve a user.
-    """
-    user = get_object_or_404(User, pk=pk)
-    serializer = UserSerializer(user)
-    return Response(serializer.data)
+class CartDetail(APIView):
+    """ This class handles the request to retrieve a cart and its items. """
+
+    def get(self, request, pk):
+        cart = get_object_or_404(Cart, pk=pk)
+        serializer = CartSerializer(cart)
+        return Response(serializer.data)
+
+    def delete(self, request, pk):
+        cart = get_object_or_404(Cart, pk=pk)
+        cart.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 @api_view(['GET', 'POST'])
