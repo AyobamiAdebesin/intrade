@@ -192,7 +192,10 @@ class Cart(models.Model):
     This class represents a cart in the store.
 
     Attributes:
-        id (int): The primary key for the cart.
+        id (uuid): The primary key for the cart. We use a UUIDField to generate a unique ID for a cart.
+        This will act as a kind of security so that random users cannot access other users' carts.
+        Since we are not tying the cart to a user, we will use a UUIDField instead of a AutoField.
+        
         created_at (datetime): The date and time the cart was created.
     """
     id = models.UUIDField(primary_key=True, default=uuid4)
