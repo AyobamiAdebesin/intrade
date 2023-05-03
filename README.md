@@ -59,6 +59,8 @@ python manage.py runserver
 
 
 ### API ENDPOINTS
+
+#### CARTS ENDPOINTS
 GET: /http://127.0.0.1:8000/intrade - This is the root endpoint. It returns a list of all the endpoints in the API.
 
 GET: "http://127.0.0.1:8000/intrade/collections/": - This endpoint returns a list of all the collections in the database. If you decide to use the already created database, the database contains a dummy data consisting of a list of 1000 collections that have been paginated. If you decide to create your own database, you will see an empty list. You will need to create collections in the admin panel to see the collections in the database. Or you can also create dummy data from online sources.
@@ -79,7 +81,9 @@ GET: http://127.0.0.1:8000/intrade/carts/:id -  This endpoint returns a cart. It
 
 DELETE: "http://127.0.0.1:8000/intrade/carts/:id" - This endpoint deletes a cart. It returns the cart id, the product id, the quantity and the total price of the cart.
 
+### USER ENDPOINTS
+GET: {} : "http://127.0.0.1:8000/auth/users/" - This endpoint returns a list of all the users in the database. You need to be authorized to access this endpoint. We have used JWT authentication for this project. You will need to create a user and then login to get the token. You can then use the token to access this endpoint.
 
+POST: { email, username, password, first_name, last_name } : "http://127.0.0.1:8000/auth/users/" - This endpoint creates a user. It takes an email, a username and a password as parameters. It returns the user id, the user email, the user username and the user password. 
 
-
-
+GET: {} : "http://127.0.0.1:8000/store/customers/ - We do not allow users to access this endpoint. It is only for the admin. It returns a list of all the customers in the database.
